@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Map with Routes and Travel Times</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiY3dob25nIiwiYSI6IjAyYzIwYTJjYTVhMzUxZTVkMzdmYTQ2YzBmMTM0ZDAyIn0.owNd_Qa7Sw2neNJbK6zc1A';
+
+    var coordinates = [
+        [-73.88949330384084, 40.5911721677568],
+        [-73.76935716147023, 40.65362364444828]
+    ];
+
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: coordinates[0],
+        zoom: 10
+    });
+
+    // Add pins for the locations
+    coordinates.forEach(function (coordinate) {
+        new mapboxgl.Marker()
+            .setLngLat(coordinate)
+            .addTo(map);
+    });
+
+    // Fetch route from Mapbox Directions API
+    $.ajax({
+        method: 'GET',
+        url: 'https://api.mapbox.com/directions/v5/mapbox/driving/' + coordinates.join(';'),
+        data: {
+            access_token: mapboxgl.accessToken
+        }
+    }).done(function(data) {
+        var route = data.routes[0].geometry;
+        // Add route layer to the map
+        map.addLayer({
+            'id': 'route',
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': route
+                }
+            },
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            'paint': {
+                'line-color': '#3887be',
+                'line-width': 5
+            }
+        });
+    });
+
+</script>
+
+</body>
+</html>
